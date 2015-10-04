@@ -47,11 +47,6 @@ public class P2PKitModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-    public void registerAroundListener(Callback cb) {
-      this.mActivity.getP2PKitService().registerAroundListener(cb);
-  }
-
-  @ReactMethod
   public void directTo(float fromLat, float fromLng, float toLat, float toLng) {
       this.mActivity.directTo(fromLat, fromLng, toLat, toLng);
   }

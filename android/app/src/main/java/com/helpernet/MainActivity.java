@@ -10,6 +10,7 @@ import android.util.Log;
 import com.facebook.react.LifecycleState;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
@@ -30,9 +31,18 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     private ReactRootView mReactRootView;
 
     private P2PKitService service;
+    private EventEmitterModule eventEmitter;
 
     public P2PKitService getP2PKitService() {
         return this.service;
+    }
+
+    public EventEmitterModule getEventEmitter() {
+        return eventEmitter;
+    }
+
+    public ReactContext getReactContext() {
+        return mReactInstanceManager.getCurrentReactContext();
     }
 
     public void phoneCall(String number) {
@@ -50,7 +60,6 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        service = new P2PKitService(this);
         mReactRootView = new ReactRootView(this);
 
         mReactInstanceManager = ReactInstanceManager.builder()
@@ -63,10 +72,12 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
                 .setInitialLifecycleState(LifecycleState.RESUMED)
                 .build();
 
-        mReactRootView.startReactApplication(mReactInstanceManager, "HelperNet", null);
 
+        mReactRootView.startReactApplication(mReactInstanceManager, "HelperNet", null);
         setContentView(mReactRootView);
 
+        eventEmitter = new EventEmitterModule(mReactInstanceManager.getCurrentReactContext());
+        service = new P2PKitService(this);
     }
 
     @Override

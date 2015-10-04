@@ -5,6 +5,9 @@
 
 var React = require('react-native');
 var _ = require('lodash');
+var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter');
+var Subscribable = require('Subscribable');
+
 var {
   AppRegistry,
   StyleSheet,
@@ -15,10 +18,14 @@ var {
   NativeModules,
   TouchableHighlight,
   SwitchAndroid,
-  AsyncStorage
+  AsyncStorage,
+  Image,
+  TouchableOpacity
 } = React;
 
 var HelperNet = React.createClass({
+
+  mixins: [Subscribable.Mixin],
 
   getInitialState() {
     return {
@@ -30,7 +37,10 @@ var HelperNet = React.createClass({
       emergencyText: 'Please help me I have an emergency!',
       aroundCount: 0,
       emergency: false,
-      receivedEmergency: true
+      receivedEmergency: true,
+      receivedEmergencyText: '',
+      location: {},
+      showSettings: false
     };
   },
 
@@ -38,7 +48,18 @@ var HelperNet = React.createClass({
     if (this.state.enabled) {
       NativeModules.P2PKit.enable();
     }
-    NativeModules.P2PKit.registerAroundListener(this.handleAroundChange);
+
+    this.addListenerOn(RCTDeviceEventEmitter,
+                   'aroundCountChanged',
+                   this.handleAroundChange);
+
+    this.addListenerOn(RCTDeviceEventEmitter,
+                   'emergencyReceived',
+                   this.handleEmergencyReceived);
+
+    this.addListenerOn(RCTDeviceEventEmitter,
+                   'location',
+                   this.handleLocationReceived);
   },
 
   componentDidMount() {
@@ -48,21 +69,50 @@ var HelperNet = React.createClass({
     });
   },
 
-  componentDidUpdate() {
-    for (let key in this.state) {
-      let value = this.state[key];
-      console.log(key, value);
-      // AsyncStorage.multiSet([[key, value]], function() {});
-    }
+  componentDidUpdate(prevProps, prevState) {
+    _.forIn(this.state, (value, key) => {
+      if (value != null && key != null && value != prevState[key]) {
+        console.log(key, value);
+        // AsyncStorage.setItem(key, value);
+      }
+    })
   },
 
-  handleAroundChange(aroundCount) {
-    this.setState({aroundCount});
+  getLocation() {
+    navigator.geolocation.getCurrentPosition(
+      (initialPosition) => this.setState({location: initialPosition}),
+      (error) => alert(error.message),
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+    );
+  },
+
+  handleAroundChange(event) {
+    this.setState({aroundCount: event.newCount});
+  },
+
+  handleEmergencyReceived(event) {
+    this.setState({
+      receivedEmergency: true,
+      receivedEmergencyText: event.message
+    });
+  },
+
+  handleLocationReceived(event) {
+    this.setState({
+      location: {
+        lat: event.lat,
+        lng: event.lng
+      }
+    });
   },
 
   sendMessage() {
-    NativeModules.P2PKit.setMessage(this.state.emergencyText + "c" + this.state.counter);
-    this.setState({counter: this.state.counter + 1});
+    // this.getLocation().then((location) => {
+    //   const {latitude, longitude} = location.coords;
+    //   NativeModules.P2PKit.setMessage(`no${this.state.emergencyText}|lo${latitude},${longitude}`);
+    // });
+    NativeModules.P2PKit.setMessage(`NO${this.state.emergencyText}|lo47.3897774,8.5164106`);
+    // this.setState({counter: this.state.counter + 1});
   },
 
   resetMessage() {
@@ -70,7 +120,8 @@ var HelperNet = React.createClass({
   },
 
   directTo() {
-    NativeModules.P2PKit.directTo(47.3897774,8.5164106,47.3874417,8.5155475);
+    const {lat, lng } = this.state.location;
+    NativeModules.P2PKit.directTo(47.3897774,8.5164106,lat,lng);
   },
   //
   // handleEnabledChanged(isEnabled) {
@@ -95,29 +146,29 @@ var HelperNet = React.createClass({
     }
   },
 
+  showSettings() {
+    this.setState({showSettings: true});
+  },
+
+  hideSettings() {
+    this.setState({showSettings: false});
+  },
+
   render() {
 
-    const youCanHelpView = (
-      <View style={styles.emergencyReceivedContainer}>
-        <Text>
-          There is an emergency nearby and you can help!
-        </Text>
-        <TouchableHighlight
-          style={styles.button}
-          onPress={this.directTo}
-          underlayColor='#ff0000'>
-          <Text style={styles.buttonText}>Route there</Text>
-        </TouchableHighlight>
-      </View>
-    );
-
-    return (
-      <View>
+    const settings = (
+      <View style={styles.rootContainer}>
         <View style={styles.toolbar}>
-          <Text style={styles.toolbarTitle}>HelperNet {this.state.aroundCount}</Text>
+          <TouchableOpacity style={styles.backButtonTouch}
+            onPress={this.hideSettings}>
+            <Image
+              style={styles.backButton}
+              source={require('image!ic_arrow_back_white_48dp')} />
+          </TouchableOpacity>
+          <Text style={styles.toolbarTitle}>HelperNet</Text>
+          <View style={styles.spaceView}/>
         </View>
         <ScrollView style={styles.scrollContainer}>
-        {this.state.receivedEmergency ? youCanHelpView : <View />}
           <View style={styles.numberContainer}>
             <Text style={styles.numberText}>
               Emergency Number
@@ -125,7 +176,7 @@ var HelperNet = React.createClass({
             <TextInput
               style={{height: 50, borderColor: 'gray', borderWidth: 1}}
               onChangeText={(number) => this.setState({number})}
-              underlineColorAndroid='#ff0000'
+              underlineColorAndroid='#5a5a5a'
               value={this.state.number} />
           </View>
           <View style={styles.switchContainer}>
@@ -147,22 +198,83 @@ var HelperNet = React.createClass({
             <TextInput
               style={{height: 100, borderColor: 'gray', borderWidth: 1}}
               onChangeText={(emergencyText) => this.setState({emergencyText})}
-              underlineColorAndroid='#ff0000'
+              underlineColorAndroid='#5a5a5a'
               value={this.state.emergencyText}
               multiline={true}
               numberOfLines={4} />
           </View>
-          <TouchableHighlight
-            style={styles.button}
-            onPress={this.handleEmergencyClick}
-            underlayColor='#ff0000'>
-            <Text style={styles.buttonText}>{this.state.emergency ? "Stop calling for help" : "Emgergency"}</Text>
-          </TouchableHighlight>
+
+
+          <View style={styles.aroundCountContainer}>
+            <Text style={styles.copyrightText}>
+              &copy; Copyritht by Nerdish by Nature
+            </Text>
+          </View>
         </ScrollView>
       </View>
     );
+
+    const modal = (
+      <View style={styles.emergencyReceivedContainer}>
+        <Text style={styles.emergencyReceivedText}>
+          There is an emergency nearby and you can help!
+          { this.state.receivedEmergencyText }
+        </Text>
+        <View style={styles.buttonGroup}>
+          <TouchableHighlight
+            style={styles.emergencyReceivedButton}
+            onPress={this.directTo}
+            underlayColor='#ff0000'>
+            <Text style={styles.emergencyReceivedButtonText}>Route there</Text>
+          </TouchableHighlight>
+          <TouchableHighlight
+            style={styles.emergencyReceivedButton}
+            onPress={this.directTo}
+            underlayColor='#ff0000'>
+            <Text style={styles.emergencyReceivedButtonText}>Dismiss</Text>
+          </TouchableHighlight>
+        </View>
+      </View>
+    );
+
+    const EmergencyView = (
+      <View style={styles.backgroundContainer}>
+        <View style={styles.toolbar}>
+          <View style={styles.spaceView}/>
+          <Text style={styles.toolbarTitle}>HelperNet</Text>
+          <TouchableOpacity style={styles.touchableSettingsIcon}
+            onPress={this.showSettings}>
+            <Image
+              style={styles.settingsIcon}
+              source={require('image!ic_settings_white_48dp')} />
+          </TouchableOpacity>
+        </View>
+          <Image
+            style={styles.circles}
+            source={require('image!background_circles')} />
+        <View style={styles.buttonWrapper}>
+          <TouchableHighlight
+            style={styles.emergencyButton}
+            onPress={this.handleEmergencyClick}
+            underlayColor='#EC407A'>
+            <Text style={styles.emergencyButtonText}>{ this.state.emergency ? "Abort" : "Broadcast Emgergency"}</Text>
+          </TouchableHighlight>
+        </View>
+        <View style={styles.aroundCountWrapper}>
+          <Text style={styles.aroundCountText}>
+            {this.state.aroundCount} person nearby.
+          </Text>
+        </View>
+        { this.state.receivedEmergency ? modal : null}
+      </View>
+    );
+
+    return this.state.showSettings ? settings : EmergencyView;
   }
 });
+
+
+
 
 
 // <View style={styles.switchContainer}>
@@ -180,11 +292,23 @@ var HelperNet = React.createClass({
 
 
 var styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1
+  },
   toolbar: {
-    backgroundColor: '#e70000',
-    paddingTop: 20,
+    backgroundColor: '#303F9F',
+    paddingTop: 10,
     paddingBottom: 10,
-    flexDirection: 'row'
+    // height: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  backButton: {
+    height: 30,
+    width: 30
+  },
+  backButtonTouch: {
+    flex: 1
   },
   toolbarTitle: {
     width: 100,
@@ -194,11 +318,11 @@ var styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20
   },
+  spaceView: {
+    flex: 1
+  },
   scrollContainer: {
-    flex: 2,
     padding: 20,
-    // justifyContent: 'center',
-    // alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
   emergencyReceivedContainer: {
@@ -228,7 +352,7 @@ var styles = StyleSheet.create({
   },
   button: {
     height: 65,
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     backgroundColor: '#e70000',
     borderColor: '#e70000',
@@ -243,6 +367,103 @@ var styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
     marginTop: 17
+  },
+  aroundCountContainer: {
+    padding: 20,
+    justifyContent: 'center',
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  aroundCountText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 17,
+    marginBottom: 110,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  copyrightText: {
+    flex: 1,
+    marginBottom: 10
+  },
+  backgroundContainer: {
+    backgroundColor: '#303F9F',
+    flex: 1,
+  },
+  touchableSettingsIcon: {
+    // position: 'absolute',
+    // right: 10,
+    // top: 10
+    flex: 1
+  },
+  settingsIcon: {
+    width: 40,
+    height: 40,
+    // position: 'relative',
+    // right: 0
+    alignSelf: 'flex-end',
+    marginRight: 10
+
+  },
+  emergencyReceivedContainer: {
+    right: 0,
+    left: 0,
+    margin: 15,
+    padding: 10,
+    height: 120,
+    position: 'absolute',
+    borderRadius: 5,
+    backgroundColor: '#f10000'
+  },
+  emergencyReceivedText: {
+    fontSize: 20,
+    color: '#fff'
+  },
+  emergencyReceivedButton: {
+    padding: 5,
+    backgroundColor: '#a90b1d',
+    borderRadius: 3
+  },
+  emergencyReceivedButtonText: {
+    fontSize: 20,
+    color: '#fff'
+  },
+  buttonGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    marginTop: 10,
+    justifyContent: 'space-between'
+  },
+  buttonWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginTop: 110
+  },
+  emergencyButton: {
+    width: 180,
+    height: 180,
+    borderRadius: 200,
+    backgroundColor: '#F50057',
+    justifyContent: 'center',
+    flexDirection: 'column',
+  },
+  emergencyButtonText: {
+    color: '#fff',
+    fontSize: 25,
+    textAlign: 'center',
+    fontWeight: 'bold'
+  },
+  circlesWrapper: {
+    justifyContent: 'center',
+  },
+  circles: {
+    height: 550,
+    width: 550,
+    position: 'absolute',
+    bottom: -160,
+    right: -90
   }
 });
 

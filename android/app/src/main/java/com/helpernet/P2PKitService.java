@@ -10,6 +10,8 @@ import android.support.v4.app.NotificationCompat;
 
 import com.facebook.react.bridge.Callback;
 
+import java.util.UUID;
+
 import ch.uepaa.p2pkit.ConnectionCallbacks;
 import ch.uepaa.p2pkit.ConnectionResult;
 import ch.uepaa.p2pkit.ConnectionResultHandling;
@@ -32,7 +34,6 @@ public class P2PKitService {
 
 
     private int aroundCounter = 0;
-    private Callback aroundCallback;
 
     public int getPeopleAroundCounter() {
         return aroundCounter;
@@ -40,10 +41,6 @@ public class P2PKitService {
 
     public Boolean wantToConnect() {
         return this.mWantToConnect;
-    }
-
-    public void registerAroundListener(Callback cb) {
-        this.aroundCallback = cb;
     }
 
     private void pushNotification(Topic topic, String message) {
@@ -119,7 +116,7 @@ public class P2PKitService {
             if(shouldStartP2P) {
                  Log.d(TAG, "Connecting P2P Discovery");
                  startP2PDiscovery();
-                 shouldStartP2P = false;
+                 shouldStartP2P = true;
             }
         }
 
@@ -143,12 +140,51 @@ public class P2PKitService {
     }
 
     public void setP2PDiscoveryInfo(String message) {
-        this.pushNotification(Topic.EMERGENCY, message);
         Log.e(TAG, "message: " + message);
         try {
             KitClient.getInstance(mainActivity).getDiscoveryServices().setP2pDiscoveryInfo(message.getBytes());
         } catch (InfoTooLongException e) {
             Log.e(TAG, "String too long!");
+        }
+    }
+
+    private void handleMessage(String message, String id) {
+        String[] parts = message.split("\\|");
+
+        for (String part : parts) {
+
+            String prefix;
+            String payload;
+
+            if (part.length() > 2) {
+                prefix = part.substring(0, 2);
+                payload = part.substring(2);
+            } else {
+                prefix = part;
+                payload = "";
+            }
+
+            if (prefix.equals("NO")) {
+                Log.d(TAG, "emergency message");
+
+                pushNotification(Topic.EMERGENCY, payload);
+                mainActivity.getEventEmitter().emitEmergency(payload, id, mainActivity.getReactContext());
+            } else if (prefix.equals("OT")) {
+                Log.d(TAG, "On the way message");
+            } else if (prefix.equals("LO")) {
+                Log.d(TAG, "location message");
+                String[] locationStrings = payload.split(",");
+
+                float lat = Float.parseFloat(locationStrings[0]);
+                float lng = Float.parseFloat(locationStrings[1]);
+
+                mainActivity.getEventEmitter().emitLocation(lat, lng, id, mainActivity.getReactContext());
+            } else if (prefix.equals("OK")) {
+                Log.d(TAG, "standard message");
+                pushNotification(Topic.MISC, "OK");
+            } else {
+                throw new IllegalArgumentException("unsupported prefix");
+            }
         }
     }
 
@@ -163,16 +199,17 @@ public class P2PKitService {
         public void onPeerDiscovered(final Peer peer) {
             Log.d(TAG, "P2pListener | Peer discovered: " + peer.getNodeId() + " with info: " + new String(peer.getDiscoveryInfo()));
             // pushNotification(Topic.MISC, "Peer discovered: " + peer.getNodeId());
+
             aroundCounter++;
-            if (aroundCallback != null) {
-                aroundCallback.invoke(aroundCounter);
+            try {
+                mainActivity.getEventEmitter().emitAroundChanged(aroundCounter, mainActivity.getReactContext());
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
             }
             String content = new String(peer.getDiscoveryInfo());
-            if (content.equals("ok")) {
-                pushNotification(Topic.MISC, "OK");
-                return;
-            }
-            pushNotification(Topic.EMERGENCY, new String(peer.getDiscoveryInfo()));
+            String id = peer.getNodeId().toString();
+            handleMessage(content, id);
+
         }
 
         @Override
@@ -180,21 +217,18 @@ public class P2PKitService {
             Log.d(TAG, "P2pListener | Peer lost: " + peer.getNodeId());
             if (aroundCounter > 0) {
                 aroundCounter--;
-                if (aroundCallback != null) {
-                    aroundCallback.invoke(aroundCounter);
-                }
+                mainActivity.getEventEmitter().emitAroundChanged(aroundCounter, mainActivity.getReactContext());
             }
         }
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
             Log.d(TAG, "P2pListener | Peer updated: " + peer.getNodeId() + " with new info: " + new String(peer.getDiscoveryInfo()));
+
+            String id = peer.getNodeId().toString();
             String content = new String(peer.getDiscoveryInfo());
-            if (content.equals("ok")) {
-                pushNotification(Topic.MISC, "OK");
-                return;
-            }
-            pushNotification(Topic.EMERGENCY, new String(peer.getDiscoveryInfo()));
+
+            handleMessage(content, id);
         }
     };
 }

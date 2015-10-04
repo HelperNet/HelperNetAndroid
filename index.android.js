@@ -251,7 +251,7 @@ var HelperNet = React.createClass({
             style={styles.emergencyButton}
             onPress={this.handleEmergencyClick}
             underlayColor='#EC407A'>
-            <Text style={styles.emergencyButtonText}>{ this.state.emergency ? "Abort" : "Broadcast Emgergency"}</Text>
+            <Text style={styles.emergencyButtonText}>{ this.state.emergency ? "Abort" : "Broadcast Emergency"}</Text>
           </TouchableHighlight>
         </View>
         <View style={styles.aroundCountWrapper}>

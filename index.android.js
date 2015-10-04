@@ -154,6 +154,10 @@ var HelperNet = React.createClass({
     this.setState({showSettings: false});
   },
 
+  dismissModal() {
+    this.setState({receivedEmergency: false});
+  },
+
   render() {
 
     const settings = (
@@ -217,7 +221,7 @@ var HelperNet = React.createClass({
     const modal = (
       <View style={styles.emergencyReceivedContainer}>
         <Text style={styles.emergencyReceivedText}>
-          There is an emergency nearby and you can help!
+          There is an emergency nearby and you can help! {'\n\n'}
           { this.state.receivedEmergencyText }
         </Text>
         <View style={styles.buttonGroup}>
@@ -229,7 +233,7 @@ var HelperNet = React.createClass({
           </TouchableHighlight>
           <TouchableHighlight
             style={styles.emergencyReceivedButton}
-            onPress={this.directTo}
+            onPress={this.dismissModal}
             underlayColor='#ff0000'>
             <Text style={styles.emergencyReceivedButtonText}>Dismiss</Text>
           </TouchableHighlight>
@@ -237,21 +241,11 @@ var HelperNet = React.createClass({
       </View>
     );
 
-    const EmergencyView = (
+    const EmergencyViewContent = (
       <View style={styles.backgroundContainer}>
-        <View style={styles.toolbar}>
-          <View style={styles.spaceView}/>
-          <Text style={styles.toolbarTitle}>HelperNet</Text>
-          <TouchableOpacity style={styles.touchableSettingsIcon}
-            onPress={this.showSettings}>
-            <Image
-              style={styles.settingsIcon}
-              source={require('image!ic_settings_white_48dp')} />
-          </TouchableOpacity>
-        </View>
-          <Image
-            style={styles.circles}
-            source={require('image!background_circles')} />
+        <Image
+          style={styles.circles}
+          source={require('image!background_circles')} />
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
             style={styles.emergencyButton}
@@ -262,10 +256,25 @@ var HelperNet = React.createClass({
         </View>
         <View style={styles.aroundCountWrapper}>
           <Text style={styles.aroundCountText}>
-            {this.state.aroundCount} person nearby.
+            {this.state.aroundCount} people nearby.
           </Text>
         </View>
-        { this.state.receivedEmergency ? modal : null}
+      </View>
+    );
+
+    const EmergencyView = (
+      <View style={styles.backgroundContainer}>
+        <View style={styles.toolbar}>
+          <View style={styles.spaceView}></View>
+          <Text style={styles.toolbarTitle}>HelperNet</Text>
+          <TouchableOpacity style={styles.touchableSettingsIcon}
+            onPress={this.showSettings}>
+            <Image
+              style={styles.settingsIcon}
+              source={require('image!ic_settings_white_48dp')} />
+          </TouchableOpacity>
+        </View>
+        { this.state.receivedEmergency ? modal : EmergencyViewContent }
       </View>
     );
 
@@ -325,13 +334,13 @@ var styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#F5FCFF',
   },
-  emergencyReceivedContainer: {
-    marginBottom: 15,
-    borderColor: '#e70000',
-    borderWidth: 3,
-    borderRadius: 8,
-    padding: 10
-  },
+  // emergencyReceivedContainer: {
+  //   marginBottom: 15,
+  //   borderColor: '#e70000',
+  //   borderWidth: 3,
+  //   borderRadius: 8,
+  //   padding: 10
+  // },
   numberContainer: {
     // padding: 10
   },
@@ -411,8 +420,9 @@ var styles = StyleSheet.create({
     left: 0,
     margin: 15,
     padding: 10,
-    height: 120,
+    height: 170,
     position: 'absolute',
+    marginTop: 150,
     borderRadius: 5,
     backgroundColor: '#f10000'
   },

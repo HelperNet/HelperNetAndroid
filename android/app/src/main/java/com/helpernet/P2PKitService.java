@@ -5,6 +5,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.util.Log;
 import android.support.v4.app.NotificationCompat;
 
@@ -61,9 +63,12 @@ public class P2PKitService {
         Intent notificationIntent = new Intent(mainActivity, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(mainActivity, 0, notificationIntent, 0);
 
+        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+
+
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mainActivity)
                 .setSmallIcon(R.drawable.notification_icon)
-//                .setSound()
+                .setSound(alarmSound)
                 .setColor(Color.rgb(250, 0, 0))
                 .setVibrate(new long[]{0, 900, 500, 900, 500})
                 .setContentIntent(pendingIntent)

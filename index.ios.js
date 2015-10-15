@@ -10,7 +10,19 @@ var {
   StyleSheet,
   Text,
   View,
+  NativeModules,
+  NativeAppEventEmitter
 } = React;
+
+console.log(NativeModules.P2PKit)
+NativeModules.P2PKit.enable()
+NativeModules.P2PKit.startDiscovery()
+
+NativeAppEventEmitter.addListener(
+  'p2pStateChanged',
+  (body) => console.log(body)
+)
+
 
 var HelperNet = React.createClass({
   render: function() {

@@ -24,24 +24,27 @@ var {
   BackAndroid
 } = React;
 
+
+const initialState = {
+  enabled: true,
+  number: "+491736353009",
+  callEmergencyAutomatically: false,
+  isEnabled: true,
+  emergencyText: 'Please help me I have an emergency!',
+  aroundCount: 0,
+  emergency: false,
+  receivedEmergency: false,
+  receivedEmergencyText: '',
+  location: {},
+  showSettings: false
+};
+
 var HelperNet = React.createClass({
 
   mixins: [Subscribable.Mixin],
 
   getInitialState() {
-    return {
-      enabled: true,
-      number: "+491736353009",
-      callEmergencyAutomatically: false,
-      isEnabled: true,
-      emergencyText: 'Please help me I have an emergency!',
-      aroundCount: 0,
-      emergency: false,
-      receivedEmergency: false,
-      receivedEmergencyText: '',
-      location: {},
-      showSettings: false
-    };
+    return initialState;
   },
 
   componentWillMount() {
@@ -73,15 +76,15 @@ var HelperNet = React.createClass({
   componentDidMount() {
     _.forEach(_.keys(this.state), (key) => {
       AsyncStorage.getItem(key)
-        .then((value) => this.setState({key: value}))
+        .then((value) => {console.log("load key, value: ", key, value); this.setState({key: value})})
     });
   },
 
   componentDidUpdate(prevProps, prevState) {
     _.forIn(this.state, (value, key) => {
-      if (value != null && key != null && value != prevState[key]) {
-        console.log(key, value);
-        // AsyncStorage.setItem(key, value);
+      if (value != null && key != null && value != initialState[key] && value != prevState[key]) {
+        console.log("set key, value: ", key, value);
+        AsyncStorage.setItem(key, value);
       }
     })
   },

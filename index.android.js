@@ -37,7 +37,7 @@ var HelperNet = React.createClass({
       emergencyText: 'Please help me I have an emergency!',
       aroundCount: 0,
       emergency: false,
-      receivedEmergency: true,
+      receivedEmergency: false,
       receivedEmergencyText: '',
       location: {},
       showSettings: false
@@ -158,6 +158,11 @@ var HelperNet = React.createClass({
     this.setState({receivedEmergency: false});
   },
 
+  accept() {
+    this.directTo();
+    NativeModules.P2PKit.setMessage(`OT`);
+  },
+
   render() {
 
     const settings = (
@@ -211,7 +216,7 @@ var HelperNet = React.createClass({
 
           <View style={styles.aroundCountContainer}>
             <Text style={styles.copyrightText}>
-              &copy; Copyritht by Nerdish by Nature
+              &copy; Copyright by #nerdishByNature
             </Text>
           </View>
         </ScrollView>
@@ -227,7 +232,7 @@ var HelperNet = React.createClass({
         <View style={styles.buttonGroup}>
           <TouchableHighlight
             style={styles.emergencyReceivedButton}
-            onPress={this.directTo}
+            onPress={this.accept}
             underlayColor='#ff0000'>
             <Text style={styles.emergencyReceivedButtonText}>Route there</Text>
           </TouchableHighlight>

@@ -20,7 +20,8 @@ var {
   SwitchAndroid,
   AsyncStorage,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
+  BackAndroid
 } = React;
 
 var HelperNet = React.createClass({
@@ -29,7 +30,6 @@ var HelperNet = React.createClass({
 
   getInitialState() {
     return {
-      counter: 0,
       enabled: true,
       number: "+491736353009",
       callEmergencyAutomatically: false,
@@ -60,6 +60,14 @@ var HelperNet = React.createClass({
     this.addListenerOn(RCTDeviceEventEmitter,
                    'location',
                    this.handleLocationReceived);
+
+    BackAndroid.addEventListener('hardwareBackPress', () => {
+      if (this.state.showSettings) {
+        this.hideSettings()
+        return true;
+      }
+      return false;
+    });
   },
 
   componentDidMount() {
@@ -112,7 +120,6 @@ var HelperNet = React.createClass({
     //   NativeModules.P2PKit.setMessage(`no${this.state.emergencyText}|lo${latitude},${longitude}`);
     // });
     NativeModules.P2PKit.setMessage(`NO${this.state.emergencyText}|lo47.3897774,8.5164106`);
-    // this.setState({counter: this.state.counter + 1});
   },
 
   resetMessage() {

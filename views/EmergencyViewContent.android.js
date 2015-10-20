@@ -15,12 +15,14 @@ var {
   Image
 } = React;
 
+var styles = require('./../stylesheet')
+
 var Modal = React.createClass({
 
   propTypes: {
-    isEmergency: React.propTypes.bool.isRequired,
-    aroundCount: React.propTypes.number.isRequired,
-    handleEmergencyClick: React.propTypes.function.isRequired,
+    isEmergency: React.PropTypes.bool.isRequired,
+    aroundCount: React.PropTypes.number.isRequired,
+    handleEmergencyClick: React.PropTypes.func.isRequired,
   },
 
   render() {
@@ -34,7 +36,7 @@ var Modal = React.createClass({
             style={styles.emergencyButton}
             onPress={this.props.handleEmergencyClick}
             underlayColor='#EC407A'>
-            <Text style={styles.emergencyButtonText}>{ this.props.emergency ? "Abort" : "Broadcast Emergency"}</Text>
+            <Text style={styles.emergencyButtonText}>{ this.props.isEmergency ? "Abort" : "Broadcast Emergency"}</Text>
           </TouchableHighlight>
         </View>
         <View style={styles.aroundCountWrapper}>
@@ -45,9 +47,6 @@ var Modal = React.createClass({
       </View>
     )
   }
-});
-
-var styles = StyleSheet.create({
 });
 
 module.exports = Modal;

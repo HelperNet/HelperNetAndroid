@@ -14,12 +14,14 @@ var {
   Image
 } = React;
 
+var styles = require('./../stylesheet')
+
 var Modal = React.createClass({
 
   propTypes: {
-    receivedEmergencyText: React.propTypes.string.isRequired,
-    onAccept: React.propTypes.function.isRequired,
-    onDismiss: React.propTypes.function.isRequired
+    receivedEmergencyText: React.PropTypes.string.isRequired,
+    onAccept: React.PropTypes.func.isRequired,
+    onDismiss: React.PropTypes.func.isRequired
   },
 
   render() {
@@ -48,7 +50,5 @@ var Modal = React.createClass({
   }
 });
 
-var styles = StyleSheet.create({
-});
 
 module.exports = Modal;

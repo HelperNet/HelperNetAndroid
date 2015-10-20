@@ -1,5 +1,4 @@
 var React = require('react-native');
-
 var {
   StyleSheet,
   Text,
@@ -7,12 +6,13 @@ var {
   View,
   ScrollView,
   TouchableHighlight,
-  SwitchAndroid,
   Image,
   TouchableOpacity
 } = React;
 
+var Switch = require('./Switch')
 var styles = require('./../stylesheet')
+
 
 var SettingsView = React.createClass({
 
@@ -45,7 +45,7 @@ var SettingsView = React.createClass({
               Emergency Number
             </Text>
             <TextInput
-              style={{height: 50, borderColor: 'gray', borderWidth: 1}}
+              style={{height: 50, borderColor: 'gray', borderWidth: 1, paddingLeft: 10, lineHeight: 36}}
               onChangeText={this.props.onChangeNumber}
               underlineColorAndroid='#5a5a5a'
               value={this.props.phoneNumber} />
@@ -54,20 +54,17 @@ var SettingsView = React.createClass({
             <Text style={styles.label}>
               Call Emergency Number automatically
             </Text>
-            <SwitchAndroid
+            <Switch
              onValueChange={this.props.onChangeShouldCallEmergencyAutomatically}
              style={styles.switch}
-             value={this.props.shouldCallEmergencyAutomatically}
-             onTintColor='#ff0000'
-             thumbTintColor='#ff0000'
-             tintColor='#ff0000' />
+             value={this.props.shouldCallEmergencyAutomatically} />
           </View>
           <View style={styles.numberContainer}>
             <Text style={styles.numberText}>
               Emgergency Text
             </Text>
             <TextInput
-              style={{height: 100, borderColor: 'gray', borderWidth: 1}}
+              style={{height: 100, borderColor: 'gray', borderWidth: 1, paddingLeft: 10, paddingTop: 10}}
               onChangeText={this.props.onChangeEmergencyText}
               underlineColorAndroid='#5a5a5a'
               value={this.props.emergencyText}

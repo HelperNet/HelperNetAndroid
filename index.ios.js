@@ -24,7 +24,7 @@ var {
   // BackAndroid
 } = React;
 
-const P2PService = require('./lib/P2PService')
+// const P2PService = require('./lib/P2PService')
 const EmergencyView = require('./views/EmergencyView')
 const SettingsView = require('./views/SettingsView')
 
@@ -179,9 +179,28 @@ var HelperNet = React.createClass({
   },
 
   render() {
-    return this.state.showSettings
-      ? <SettingsView {...this.state} />
-      : <EmergencyView {...this.state} />
+    const settingsView =
+      <SettingsView
+      hideSettings={this.hideSettings}
+      onChangeNumber={number => this.setState({number})}
+      phoneNumber={this.state.number}
+      shouldCallEmergencyAutomatically={this.state.callEmergencyAutomatically}
+      onChangeShouldCallEmergencyAutomatically={callEmergencyAutomatically => this.setState({callEmergencyAutomatically})}
+      emergencyText={this.state.emergencyText}
+      onChangeEmergencyText={emergencyText => this.setState({emergencyText})} />
+
+    const emergencyView =
+      <EmergencyView
+        showSettings={this.showSettings}
+        isEmergency={this.state.emergency}
+        receivedEmergency={this.state.receivedEmergency}
+        aroundCount={this.state.aroundCount}
+        handleEmergencyClick={this.handleEmergencyClick}
+        receivedEmergencyText={this.state.receivedEmergencyText}
+        onAcceptEmergencyCall={this.acceptEmergencyCall}
+        onDismissEmergencyCall={this.dismissModal} />
+
+    return this.state.showSettings ? settingsView : emergencyView;
   }
 })
 

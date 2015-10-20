@@ -18,7 +18,8 @@ module.exports = StyleSheet.create({
     width: 30
   },
   backButtonTouch: {
-    flex: 1
+    flex: 1,
+    marginTop: 20
   },
   toolbarTitle: {
     width: 100,
@@ -26,7 +27,8 @@ module.exports = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     fontWeight: 'bold',
-    fontSize: 20
+    fontSize: 20,
+    marginTop: 20
   },
   spaceView: {
     flex: 1
@@ -55,7 +57,7 @@ module.exports = StyleSheet.create({
     justifyContent: 'space-between'
   },
   label: {
-
+    width: 200
   },
   switch: {
     marginBottom: 10
@@ -105,7 +107,8 @@ module.exports = StyleSheet.create({
     // position: 'absolute',
     // right: 10,
     // top: 10
-    flex: 1
+    flex: 1,
+    marginTop: 15
   },
   settingsIcon: {
     width: 40,
@@ -155,25 +158,27 @@ module.exports = StyleSheet.create({
   emergencyButton: {
     width: 180,
     height: 180,
-    borderRadius: 200,
+    borderRadius: 90,
     backgroundColor: '#F50057',
     justifyContent: 'center',
     flexDirection: 'column',
   },
   emergencyButtonText: {
     color: '#fff',
-    fontSize: 25,
+    fontSize: 22,
     textAlign: 'center',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    width: 160,
+    marginLeft: 10
   },
   circlesWrapper: {
     justifyContent: 'center',
   },
   circles: {
-    height: 550,
-    width: 550,
+    height: 0, // 550
+    width: 0, // 550
     position: 'absolute',
-    bottom: -160,
-    right: -90
+    // bottom: 20,
+    // right: 0
   }
 })

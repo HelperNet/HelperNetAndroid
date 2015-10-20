@@ -1,6 +1,6 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * HelperNet React Native App
+ * https://HelperNet.github.io
  */
 
 var React = require('react-native')
@@ -24,6 +24,8 @@ var {
   BackAndroid
 } = React;
 
+var EmergencyView = require('./views/EmergencyView')
+var SettingsView = require('./views/SettingsView')
 
 const initialState = {
   enabled: true,
@@ -74,10 +76,10 @@ var HelperNet = React.createClass({
   },
 
   componentDidMount() {
-    _.forEach(_.keys(this.state), (key) => {
-      AsyncStorage.getItem(key)
-        .then((value) => {console.log("load key, value: ", key, value); this.setState({key: value})})
-    });
+    // _.forEach(_.keys(this.state), (key) => {
+    //   AsyncStorage.getItem(key)
+    //     .then((value) => {console.log("load key, value: ", key, value); this.setState({key: value})})
+    // });
   },
 
   componentDidUpdate(prevProps, prevState) {
@@ -169,132 +171,35 @@ var HelperNet = React.createClass({
     this.setState({receivedEmergency: false})
   },
 
-  accept() {
+  acceptEmergencyCall() {
     this.directTo();
     NativeModules.P2PKit.setMessage(`OT`);
   },
 
   render() {
 
-    const settings = (
-      <View style={styles.rootContainer}>
-        <View style={styles.toolbar}>
-          <TouchableOpacity style={styles.backButtonTouch}
-            onPress={this.hideSettings}>
-            <Image
-              style={styles.backButton}
-              source={require('image!ic_arrow_back_white_48dp')} />
-          </TouchableOpacity>
-          <Text style={styles.toolbarTitle}>HelperNet</Text>
-          <View style={styles.spaceView}/>
-        </View>
-        <ScrollView style={styles.scrollContainer}>
-          <View style={styles.numberContainer}>
-            <Text style={styles.numberText}>
-              Emergency Number
-            </Text>
-            <TextInput
-              style={{height: 50, borderColor: 'gray', borderWidth: 1}}
-              onChangeText={(number) => this.setState({number})}
-              underlineColorAndroid='#5a5a5a'
-              value={this.state.number} />
-          </View>
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>
-              Call Emergency Number automatically
-            </Text>
-            <SwitchAndroid
-             onValueChange={(value) => this.setState({callEmergencyAutomatically: value})}
-             style={styles.switch}
-             value={this.state.callEmergencyAutomatically}
-             onTintColor='#ff0000'
-             thumbTintColor='#ff0000'
-             tintColor='#ff0000' />
-          </View>
-          <View style={styles.numberContainer}>
-            <Text style={styles.numberText}>
-              Emgergency Text
-            </Text>
-            <TextInput
-              style={{height: 100, borderColor: 'gray', borderWidth: 1}}
-              onChangeText={(emergencyText) => this.setState({emergencyText})}
-              underlineColorAndroid='#5a5a5a'
-              value={this.state.emergencyText}
-              multiline={true}
-              numberOfLines={4} />
-          </View>
+    const settingsView =
+      <SettingsView
+      hideSettings={this.hideSettings}
+      onChangeNumber={number => this.setState({number})}
+      phoneNumber={this.state.number}
+      shouldCallEmergencyAutomatically={this.state.callEmergencyAutomatically}
+      onChangeShouldCallEmergencyAutomatically={callEmergencyAutomatically => this.setState({callEmergencyAutomatically})}
+      emergencyText={this.state.emergencyText}
+      onChangeEmergencyText={emergencyText => this.setState({emergencyText})} />
 
+    const emergencyView =
+      <EmergencyView
+        showSettings={this.showSettings}
+        isEmergency={this.state.emergency}
+        receivedEmergency={this.state.receivedEmergency}
+        aroundCount={this.state.aroundCount}
+        handleEmergencyClick={this.handleEmergencyClick}
+        receivedEmergencyText={this.state.receivedEmergencyText}
+        onAcceptEmergencyCall={this.acceptEmergencyCall}
+        onDismissEmergencyCall={this.dismissModal} />
 
-          <View style={styles.aroundCountContainer}>
-            <Text style={styles.copyrightText}>
-              &copy; 2015 Nerdish by Nature
-            </Text>
-          </View>
-        </ScrollView>
-      </View>
-    )
-
-    const modal = (
-      <View style={styles.emergencyReceivedContainer}>
-        <Text style={styles.emergencyReceivedText}>
-          There is an emergency nearby and you can help! {'\n\n'}
-          { this.state.receivedEmergencyText }
-        </Text>
-        <View style={styles.buttonGroup}>
-          <TouchableHighlight
-            style={styles.emergencyReceivedButton}
-            onPress={this.accept}
-            underlayColor='#ff0000'>
-            <Text style={styles.emergencyReceivedButtonText}>Route there</Text>
-          </TouchableHighlight>
-          <TouchableHighlight
-            style={styles.emergencyReceivedButton}
-            onPress={this.dismissModal}
-            underlayColor='#ff0000'>
-            <Text style={styles.emergencyReceivedButtonText}>Dismiss</Text>
-          </TouchableHighlight>
-        </View>
-      </View>
-    )
-
-    const EmergencyViewContent = (
-      <View style={styles.backgroundContainer}>
-        <Image
-          style={styles.circles}
-          source={require('image!background_circles')} />
-        <View style={styles.buttonWrapper}>
-          <TouchableHighlight
-            style={styles.emergencyButton}
-            onPress={this.handleEmergencyClick}
-            underlayColor='#EC407A'>
-            <Text style={styles.emergencyButtonText}>{ this.state.emergency ? "Abort" : "Broadcast Emergency"}</Text>
-          </TouchableHighlight>
-        </View>
-        <View style={styles.aroundCountWrapper}>
-          <Text style={styles.aroundCountText}>
-            {this.state.aroundCount} people nearby.
-          </Text>
-        </View>
-      </View>
-    )
-
-    const EmergencyView = (
-      <View style={styles.backgroundContainer}>
-        <View style={styles.toolbar}>
-          <View style={styles.spaceView}></View>
-          <Text style={styles.toolbarTitle}>HelperNet</Text>
-          <TouchableOpacity style={styles.touchableSettingsIcon}
-            onPress={this.showSettings}>
-            <Image
-              style={styles.settingsIcon}
-              source={require('image!ic_settings_white_48dp')} />
-          </TouchableOpacity>
-        </View>
-        { this.state.receivedEmergency ? modal : EmergencyViewContent }
-      </View>
-    )
-
-    return this.state.showSettings ? settings : EmergencyView
+    return this.state.showSettings ? settingsView : emergencyView;
   }
 })
 

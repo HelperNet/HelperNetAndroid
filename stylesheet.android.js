@@ -155,7 +155,7 @@ module.exports = StyleSheet.create({
   emergencyButton: {
     width: 180,
     height: 180,
-    borderRadius: 200,
+    borderRadius: 180,
     backgroundColor: '#F50057',
     justifyContent: 'center',
     flexDirection: 'column',

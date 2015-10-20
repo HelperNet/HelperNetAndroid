@@ -186,9 +186,10 @@ public class P2PKitService {
                 mainActivity.getEventEmitter().emitLocation(lat, lng, id, mainActivity.getReactContext());
             } else if (prefix.equals("OK")) {
                 Log.d(TAG, "standard message");
-                pushNotification(Topic.MISC, "OK");
+//                pushNotification(Topic.MISC, "OK");
             } else {
-                throw new IllegalArgumentException("unsupported prefix");
+//                throw new IllegalArgumentException("unsupported prefix");
+                Log.e(TAG, "unsupported prefix: " + prefix);
             }
         }
     }

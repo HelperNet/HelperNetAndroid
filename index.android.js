@@ -20,28 +20,31 @@ var {
   SwitchAndroid,
   AsyncStorage,
   Image,
-  TouchableOpacity
-} = React
+  TouchableOpacity,
+  BackAndroid
+} = React;
+
+
+const initialState = {
+  enabled: true,
+  number: "+491736353009",
+  callEmergencyAutomatically: false,
+  isEnabled: true,
+  emergencyText: 'Please help me I have an emergency!',
+  aroundCount: 0,
+  emergency: false,
+  receivedEmergency: false,
+  receivedEmergencyText: '',
+  location: {},
+  showSettings: false
+};
 
 var HelperNet = React.createClass({
 
   mixins: [Subscribable.Mixin],
 
   getInitialState() {
-    return {
-      counter: 0,
-      enabled: true,
-      number: "+491736353009",
-      callEmergencyAutomatically: false,
-      isEnabled: true,
-      emergencyText: 'Please help me I have an emergency!',
-      aroundCount: 0,
-      emergency: false,
-      receivedEmergency: true,
-      receivedEmergencyText: '',
-      location: {},
-      showSettings: false
-    }
+    return initialState;
   },
 
   componentWillMount() {
@@ -59,22 +62,29 @@ var HelperNet = React.createClass({
 
     this.addListenerOn(RCTDeviceEventEmitter,
                    'location',
-                   this.handleLocationReceived)
+                   this.handleLocationReceived);
+
+    BackAndroid.addEventListener('hardwareBackPress', () => {
+      if (this.state.showSettings) {
+        this.hideSettings()
+        return true;
+      }
+      return false;
+    });
   },
 
   componentDidMount() {
     _.forEach(_.keys(this.state), (key) => {
       AsyncStorage.getItem(key)
-        .then((value) => this.setState({key: value}))
-    })
+        .then((value) => {console.log("load key, value: ", key, value); this.setState({key: value})})
+    });
   },
 
   componentDidUpdate(prevProps, prevState) {
     _.forIn(this.state, (value, key) => {
-      if (value != null && key != null && value != prevState[key]) {
-        console.log(key, value)
-        // TODO: why does async storage break?
-        // AsyncStorage.setItem(key, value)
+      if (value != null && key != null && value != initialState[key] && value != prevState[key]) {
+        console.log("set key, value: ", key, value);
+        AsyncStorage.setItem(key, value);
       }
     })
   },
@@ -110,11 +120,10 @@ var HelperNet = React.createClass({
 
   sendMessage() {
     // this.getLocation().then((location) => {
-    //   const {latitude, longitude} = location.coords
-    //   NativeModules.P2PKit.setMessage(`no${this.state.emergencyText}|lo${latitude},${longitude}`)
-    // })
-    NativeModules.P2PKit.setMessage(`NO${this.state.emergencyText}|lo47.3897774,8.5164106`)
-    // this.setState({counter: this.state.counter + 1})
+    //   const {latitude, longitude} = location.coords;
+    //   NativeModules.P2PKit.setMessage(`no${this.state.emergencyText}|lo${latitude},${longitude}`);
+    // });
+    NativeModules.P2PKit.setMessage(`NO${this.state.emergencyText}|lo47.3897774,8.5164106`);
   },
 
   resetMessage() {
@@ -158,6 +167,11 @@ var HelperNet = React.createClass({
 
   dismissModal() {
     this.setState({receivedEmergency: false})
+  },
+
+  accept() {
+    this.directTo();
+    NativeModules.P2PKit.setMessage(`OT`);
   },
 
   render() {
@@ -213,7 +227,7 @@ var HelperNet = React.createClass({
 
           <View style={styles.aroundCountContainer}>
             <Text style={styles.copyrightText}>
-              &copy 2015 Nerdish by Nature
+              &copy; 2015 Nerdish by Nature
             </Text>
           </View>
         </ScrollView>
@@ -229,7 +243,7 @@ var HelperNet = React.createClass({
         <View style={styles.buttonGroup}>
           <TouchableHighlight
             style={styles.emergencyReceivedButton}
-            onPress={this.directTo}
+            onPress={this.accept}
             underlayColor='#ff0000'>
             <Text style={styles.emergencyReceivedButtonText}>Route there</Text>
           </TouchableHighlight>

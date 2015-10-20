@@ -1,69 +1,59 @@
-
 var React = require('react-native');
 
 var {
-  AppRegistry,
   StyleSheet,
   Text,
-  TextInput,
   View,
-  ScrollView,
-  NativeModules,
   TouchableHighlight,
-  SwitchAndroid,
-  AsyncStorage,
   Image
 } = React;
 
+var Modal = require('./Modal');
+var EmergencyViewContent = require('./EmergencyViewContent');
+
 var EmergencyView = React.createClass({
+
+  propTypes: {
+    isEmergency: React.propTypes.bool.isRequired,
+    receivedEmergency: React.propTypes.bool.isRequired,
+    aroundCount: React.propTypes.number.isRequired,
+    handleEmergencyClick: React.propTypes.function.isRequired,
+    receivedEmergencyText: React.propTypes.string.isRequired,
+    onAcceptEmergencyCall: React.propTypes.function.isRequired,
+    onDismissEmergencyCall: React.propTypes.function.isRequired
+  },
+
   render() {
 
-    const modal = (
-      <View style={styles.emergencyReceivedContainer}>
-        <Text style={styles.emergencyReceivedText}>
-          There is an emergency nearby and you can help!
-        </Text>
-        <View style={styles.buttonGroup}>
-          <TouchableHighlight
-            style={styles.emergencyReceivedButton}
-            onPress={this.directTo}
-            underlayColor='#ff0000'>
-            <Text style={styles.emergencyReceivedButtonText}>Route there</Text>
-          </TouchableHighlight>
-          <TouchableHighlight
-            style={styles.emergencyReceivedButton}
-            onPress={this.directTo}
-            underlayColor='#ff0000'>
-            <Text style={styles.emergencyReceivedButtonText}>Dismiss</Text>
-          </TouchableHighlight>
-        </View>
-      </View>
-    );
+    const {
+      receivedEmergency,
+      isEmergency,
+      aroundCount,
+      handleEmergencyClick,
+      receivedEmergencyText,
+      onAcceptEmergencyCall,
+      onDismissEmergencyCall
+    } = this.props;
 
     return (
       <View style={styles.backgroundContainer}>
-          <View>
-          <TouchableHighlight
+        <View style={styles.toolbar}>
+          <View style={styles.spaceView}></View>
+          <Text style={styles.toolbarTitle}>HelperNet</Text>
+          <TouchableOpacity style={styles.touchableSettingsIcon}
             onPress={this.showSettings}>
             <Image
               style={styles.settingsIcon}
-              source={require('image!ic_settings_black_48dp')} />
-          </TouchableHighlight>
-            <Image
-              style={styles.settingsIcon}
-              source={require('image!ic_settings_black_48dp')} />
-          </View>
-          <Image
-            style={styles.circles}
-            source={require('image!background_circles')} />
-        <View style={styles.buttonWrapper}>
-          <TouchableHighlight
-            style={styles.emergencyButton}
-            onPress={this.handleEmergencyClick}
-            underlayColor='#ff0000'>
-            <Text style={styles.emergencyButtonText}>Broadcast Emergency</Text>
-          </TouchableHighlight>
+              source={require('image!ic_settings_white_48dp')} />
+          </TouchableOpacity>
         </View>
+        { receivedEmergency ?
+          <Modal
+           receivedEmergencyText={receivedEmergencyText}
+           onAccept={onAcceptEmergencyCall}
+           onDismiss={onDismissEmergencyCall} /> :
+           <EmergencyViewContent {isEmergency, aroundCount, handleEmergencyClick} />
+        }
       </View>
     )
   }
